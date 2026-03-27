@@ -1,0 +1,527 @@
+[
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 6,
+    "avg_orders_weekday": 3.6,
+    "avg_orders_weekend": 3.0
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 7,
+    "avg_orders_weekday": 14.2,
+    "avg_orders_weekend": 11.7
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 8,
+    "avg_orders_weekday": 26.1,
+    "avg_orders_weekend": 16.3
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 9,
+    "avg_orders_weekday": 22.7,
+    "avg_orders_weekend": 15.7
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 10,
+    "avg_orders_weekday": 15.0,
+    "avg_orders_weekend": 12.9
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 11,
+    "avg_orders_weekday": 12.7,
+    "avg_orders_weekend": 14.1
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 12,
+    "avg_orders_weekday": 16.9,
+    "avg_orders_weekend": 17.2
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 13,
+    "avg_orders_weekday": 14.3,
+    "avg_orders_weekend": 16.0
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 14,
+    "avg_orders_weekday": 11.7,
+    "avg_orders_weekend": 12.0
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 15,
+    "avg_orders_weekday": 12.6,
+    "avg_orders_weekend": 10.9
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 16,
+    "avg_orders_weekday": 11.2,
+    "avg_orders_weekend": 9.6
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 17,
+    "avg_orders_weekday": 9.0,
+    "avg_orders_weekend": 8.1
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 18,
+    "avg_orders_weekday": 6.7,
+    "avg_orders_weekend": 6.1
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 19,
+    "avg_orders_weekday": 3.5,
+    "avg_orders_weekend": 3.1
+  },
+  {
+    "store_id": "store_1",
+    "store_name": "Downtown",
+    "hour": 20,
+    "avg_orders_weekday": 1.9,
+    "avg_orders_weekend": 1.6
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 6,
+    "avg_orders_weekday": 2.8,
+    "avg_orders_weekend": 2.5
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 7,
+    "avg_orders_weekday": 10.4,
+    "avg_orders_weekend": 9.9
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 8,
+    "avg_orders_weekday": 18.5,
+    "avg_orders_weekend": 13.6
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 9,
+    "avg_orders_weekday": 18.1,
+    "avg_orders_weekend": 12.4
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 10,
+    "avg_orders_weekday": 10.5,
+    "avg_orders_weekend": 10.3
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 11,
+    "avg_orders_weekday": 10.5,
+    "avg_orders_weekend": 10.7
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 12,
+    "avg_orders_weekday": 11.9,
+    "avg_orders_weekend": 13.1
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 13,
+    "avg_orders_weekday": 11.1,
+    "avg_orders_weekend": 11.2
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 14,
+    "avg_orders_weekday": 9.9,
+    "avg_orders_weekend": 8.9
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 15,
+    "avg_orders_weekday": 9.3,
+    "avg_orders_weekend": 8.6
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 16,
+    "avg_orders_weekday": 8.1,
+    "avg_orders_weekend": 7.6
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 17,
+    "avg_orders_weekday": 7.5,
+    "avg_orders_weekend": 6.5
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 18,
+    "avg_orders_weekday": 5.8,
+    "avg_orders_weekend": 4.6
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 19,
+    "avg_orders_weekday": 2.6,
+    "avg_orders_weekend": 2.4
+  },
+  {
+    "store_id": "store_2",
+    "store_name": "Westside",
+    "hour": 20,
+    "avg_orders_weekday": 1.4,
+    "avg_orders_weekend": 1.2
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 6,
+    "avg_orders_weekday": 2.4,
+    "avg_orders_weekend": 2.2
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 7,
+    "avg_orders_weekday": 9.6,
+    "avg_orders_weekend": 9.1
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 8,
+    "avg_orders_weekday": 16.5,
+    "avg_orders_weekend": 10.9
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 9,
+    "avg_orders_weekday": 16.3,
+    "avg_orders_weekend": 11.0
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 10,
+    "avg_orders_weekday": 9.7,
+    "avg_orders_weekend": 8.7
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 11,
+    "avg_orders_weekday": 7.9,
+    "avg_orders_weekend": 9.4
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 12,
+    "avg_orders_weekday": 10.2,
+    "avg_orders_weekend": 11.8
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 13,
+    "avg_orders_weekday": 9.5,
+    "avg_orders_weekend": 9.8
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 14,
+    "avg_orders_weekday": 8.8,
+    "avg_orders_weekend": 7.3
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 15,
+    "avg_orders_weekday": 8.6,
+    "avg_orders_weekend": 6.9
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 16,
+    "avg_orders_weekday": 6.8,
+    "avg_orders_weekend": 6.0
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 17,
+    "avg_orders_weekday": 6.1,
+    "avg_orders_weekend": 5.1
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 18,
+    "avg_orders_weekday": 4.8,
+    "avg_orders_weekend": 4.5
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 19,
+    "avg_orders_weekday": 2.4,
+    "avg_orders_weekend": 1.9
+  },
+  {
+    "store_id": "store_3",
+    "store_name": "Northgate",
+    "hour": 20,
+    "avg_orders_weekday": 1.3,
+    "avg_orders_weekend": 1.0
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 6,
+    "avg_orders_weekday": 2.6,
+    "avg_orders_weekend": 2.3
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 7,
+    "avg_orders_weekday": 10.3,
+    "avg_orders_weekend": 8.5
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 8,
+    "avg_orders_weekday": 18.5,
+    "avg_orders_weekend": 11.5
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 9,
+    "avg_orders_weekday": 17.0,
+    "avg_orders_weekend": 11.4
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 10,
+    "avg_orders_weekday": 10.5,
+    "avg_orders_weekend": 9.6
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 11,
+    "avg_orders_weekday": 8.4,
+    "avg_orders_weekend": 9.1
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 12,
+    "avg_orders_weekday": 12.0,
+    "avg_orders_weekend": 11.4
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 13,
+    "avg_orders_weekday": 11.0,
+    "avg_orders_weekend": 11.3
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 14,
+    "avg_orders_weekday": 9.6,
+    "avg_orders_weekend": 7.7
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 15,
+    "avg_orders_weekday": 9.7,
+    "avg_orders_weekend": 7.4
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 16,
+    "avg_orders_weekday": 7.7,
+    "avg_orders_weekend": 6.5
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 17,
+    "avg_orders_weekday": 6.7,
+    "avg_orders_weekend": 5.8
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 18,
+    "avg_orders_weekday": 5.4,
+    "avg_orders_weekend": 4.6
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 19,
+    "avg_orders_weekday": 2.7,
+    "avg_orders_weekend": 2.2
+  },
+  {
+    "store_id": "store_4",
+    "store_name": "Eastpark",
+    "hour": 20,
+    "avg_orders_weekday": 1.3,
+    "avg_orders_weekend": 1.2
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 6,
+    "avg_orders_weekday": 3.4,
+    "avg_orders_weekend": 2.6
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 7,
+    "avg_orders_weekday": 12.4,
+    "avg_orders_weekend": 11.0
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 8,
+    "avg_orders_weekday": 22.0,
+    "avg_orders_weekend": 13.8
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 9,
+    "avg_orders_weekday": 20.6,
+    "avg_orders_weekend": 13.8
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 10,
+    "avg_orders_weekday": 12.4,
+    "avg_orders_weekend": 10.6
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 11,
+    "avg_orders_weekday": 11.5,
+    "avg_orders_weekend": 11.4
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 12,
+    "avg_orders_weekday": 14.5,
+    "avg_orders_weekend": 15.3
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 13,
+    "avg_orders_weekday": 13.2,
+    "avg_orders_weekend": 13.8
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 14,
+    "avg_orders_weekday": 10.5,
+    "avg_orders_weekend": 10.2
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 15,
+    "avg_orders_weekday": 11.4,
+    "avg_orders_weekend": 10.6
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 16,
+    "avg_orders_weekday": 9.6,
+    "avg_orders_weekend": 8.7
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 17,
+    "avg_orders_weekday": 8.6,
+    "avg_orders_weekend": 7.6
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 18,
+    "avg_orders_weekday": 6.2,
+    "avg_orders_weekend": 5.7
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 19,
+    "avg_orders_weekday": 3.1,
+    "avg_orders_weekend": 2.8
+  },
+  {
+    "store_id": "store_5",
+    "store_name": "Midtown",
+    "hour": 20,
+    "avg_orders_weekday": 1.7,
+    "avg_orders_weekend": 1.4
+  }
+]

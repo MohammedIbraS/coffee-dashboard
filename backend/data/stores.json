@@ -1,0 +1,27 @@
+[
+  {
+    "id": "store_1",
+    "name": "Downtown",
+    "district": "Downtown"
+  },
+  {
+    "id": "store_2",
+    "name": "Westside",
+    "district": "Westside"
+  },
+  {
+    "id": "store_3",
+    "name": "Northgate",
+    "district": "Northgate"
+  },
+  {
+    "id": "store_4",
+    "name": "Eastpark",
+    "district": "Eastpark"
+  },
+  {
+    "id": "store_5",
+    "name": "Midtown",
+    "district": "Midtown"
+  }
+]

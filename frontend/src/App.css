@@ -1,0 +1,13 @@
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+.dashboard-area {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "espresso",
+    "name": "Espresso",
+    "category": "Hot Drinks",
+    "price": 3.5
+  },
+  {
+    "id": "americano",
+    "name": "Americano",
+    "category": "Hot Drinks",
+    "price": 4.0
+  },
+  {
+    "id": "cappuccino",
+    "name": "Cappuccino",
+    "category": "Hot Drinks",
+    "price": 4.5
+  },
+  {
+    "id": "latte",
+    "name": "Latte",
+    "category": "Hot Drinks",
+    "price": 5.0
+  },
+  {
+    "id": "flat_white",
+    "name": "Flat White",
+    "category": "Hot Drinks",
+    "price": 5.0
+  },
+  {
+    "id": "mocha",
+    "name": "Mocha",
+    "category": "Hot Drinks",
+    "price": 5.5
+  },
+  {
+    "id": "macchiato",
+    "name": "Macchiato",
+    "category": "Hot Drinks",
+    "price": 4.5
+  },
+  {
+    "id": "cortado",
+    "name": "Cortado",
+    "category": "Hot Drinks",
+    "price": 4.0
+  },
+  {
+    "id": "pour_over",
+    "name": "Pour Over",
+    "category": "Hot Drinks",
+    "price": 5.0
+  },
+  {
+    "id": "hot_chocolate",
+    "name": "Hot Chocolate",
+    "category": "Hot Drinks",
+    "price": 4.5
+  },
+  {
+    "id": "cold_brew",
+    "name": "Cold Brew",
+    "category": "Cold Drinks",
+    "price": 5.5
+  },
+  {
+    "id": "iced_latte",
+    "name": "Iced Latte",
+    "category": "Cold Drinks",
+    "price": 5.5
+  },
+  {
+    "id": "iced_americano",
+    "name": "Iced Americano",
+    "category": "Cold Drinks",
+    "price": 4.5
+  },
+  {
+    "id": "matcha_latte",
+    "name": "Matcha Latte",
+    "category": "Cold Drinks",
+    "price": 5.5
+  },
+  {
+    "id": "chai_latte",
+    "name": "Chai Latte",
+    "category": "Cold Drinks",
+    "price": 5.0
+  },
+  {
+    "id": "croissant",
+    "name": "Croissant",
+    "category": "Food",
+    "price": 3.5
+  },
+  {
+    "id": "muffin",
+    "name": "Muffin",
+    "category": "Food",
+    "price": 3.0
+  },
+  {
+    "id": "avocado_toast",
+    "name": "Avocado Toast",
+    "category": "Food",
+    "price": 8.0
+  },
+  {
+    "id": "banana_bread",
+    "name": "Banana Bread",
+    "category": "Food",
+    "price": 3.5
+  },
+  {
+    "id": "cheesecake",
+    "name": "Cheesecake",
+    "category": "Food",
+    "price": 5.0
+  }
+]
