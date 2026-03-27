@@ -3,7 +3,14 @@ import { api } from "../../services/api";
 import { ChatMessage } from "./ChatMessage";
 import styles from "./ChatPanel.module.css";
 
-const SUGGESTIONS = [
+const WELCOME = {
+  role: "assistant",
+  text: "Hi! I'm your Coffee Co. analytics assistant. Ask me anything about sales, products, or store performance — I can also generate charts on demand.",
+  chart_spec: null,
+  suggestions: [],
+};
+
+const INITIAL_SUGGESTIONS = [
   "What are the top 5 products this month?",
   "Compare store revenue for Q4",
   "Show peak hours for Downtown",
@@ -11,13 +18,7 @@ const SUGGESTIONS = [
 ];
 
 export function ChatPanel({ onChartGenerated }) {
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      text: "Hi! I'm your Coffee Co. analytics assistant. Ask me anything about sales, products, or store performance — I can also generate charts on demand.",
-      chart_spec: null,
-    },
-  ]);
+  const [messages, setMessages] = useState([WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
@@ -31,22 +32,22 @@ export function ChatPanel({ onChartGenerated }) {
     const userText = (text || input).trim();
     if (!userText || loading) return;
 
-    const newMessages = [...messages, { role: "user", text: userText, chart_spec: null }];
+    const newMessages = [...messages, { role: "user", text: userText, chart_spec: null, suggestions: [] }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
 
     try {
-      // Build API message history (only user/assistant text for the API)
-      const apiMessages = newMessages.map((m) => ({
-        role: m.role,
-        content: m.text,
-      }));
-
+      const apiMessages = newMessages.map((m) => ({ role: m.role, content: m.text }));
       const result = await api.chat(apiMessages);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: result.text, chart_spec: result.chart_spec },
+        {
+          role: "assistant",
+          text: result.text,
+          chart_spec: result.chart_spec,
+          suggestions: result.suggestions || [],
+        },
       ]);
       if (result.chart_spec) {
         onChartGenerated(result.chart_spec);
@@ -54,7 +55,7 @@ export function ChatPanel({ onChartGenerated }) {
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: "Sorry, I encountered an error. Please try again.", chart_spec: null },
+        { role: "assistant", text: "Sorry, I encountered an error. Please try again.", chart_spec: null, suggestions: [] },
       ]);
     } finally {
       setLoading(false);
@@ -69,6 +70,11 @@ export function ChatPanel({ onChartGenerated }) {
     }
   };
 
+  const clearChat = () => {
+    setMessages([WELCOME]);
+    setInput("");
+  };
+
   return (
     <div className={styles.panel}>
       {/* Header */}
@@ -77,22 +83,36 @@ export function ChatPanel({ onChartGenerated }) {
           <span className={styles.dot} />
           <span className={styles.title}>AI Assistant</span>
         </div>
-        <span className={styles.model}>Claude</span>
+        <div className={styles.headerRight}>
+          <span className={styles.model}>Claude</span>
+          {messages.length > 1 && (
+            <button className={styles.clearBtn} onClick={clearChat} title="Clear chat">
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
       <div className={styles.messages}>
         {messages.map((m, i) => (
-          <ChatMessage key={i} role={m.role} text={m.text} chart_spec={m.chart_spec} />
+          <ChatMessage
+            key={i}
+            role={m.role}
+            text={m.text}
+            chart_spec={m.chart_spec}
+            suggestions={i === messages.length - 1 ? m.suggestions : []}
+            onSuggestionClick={send}
+          />
         ))}
         {loading && <ChatMessage isLoading />}
         <div ref={bottomRef} />
       </div>
 
-      {/* Suggestions */}
+      {/* Initial suggestions */}
       {messages.length === 1 && !loading && (
         <div className={styles.suggestions}>
-          {SUGGESTIONS.map((s) => (
+          {INITIAL_SUGGESTIONS.map((s) => (
             <button key={s} className={styles.suggestion} onClick={() => send(s)}>
               {s}
             </button>
@@ -112,11 +132,7 @@ export function ChatPanel({ onChartGenerated }) {
           rows={1}
           disabled={loading}
         />
-        <button
-          className={styles.sendBtn}
-          onClick={() => send()}
-          disabled={loading || !input.trim()}
-        >
+        <button className={styles.sendBtn} onClick={() => send()} disabled={loading || !input.trim()}>
           {loading ? "…" : "↑"}
         </button>
       </div>

@@ -59,6 +59,16 @@ def store_comparison(metric: str = "revenue", period: str = "last_30_days"):
     return tools.get_store_comparison(metric, period)
 
 
+@app.get("/api/day-of-week")
+def day_of_week(store_name: Optional[str] = None, period: str = "this_year", metric: str = "revenue"):
+    return tools.get_day_of_week_breakdown(store_name, period, metric)
+
+
+@app.get("/api/revenue-forecast")
+def revenue_forecast(store_name: Optional[str] = None, days_ahead: int = 7):
+    return tools.get_revenue_forecast(store_name, days_ahead)
+
+
 # ---------------------------------------------------------------------------
 # Chat endpoint
 # ---------------------------------------------------------------------------

@@ -15,6 +15,8 @@ export const api = {
   getTopProducts: (params) => get("/top-products", params),
   getPeakHours: (params) => get("/peak-hours", params),
   getStoreComparison: (params) => get("/store-comparison", params),
+  getDayOfWeek: (params) => get("/day-of-week", params),
+  getRevenueForecast: (params) => get("/revenue-forecast", params),
 
   chat: async (messages) => {
     const res = await fetch(`${BASE}/chat`, {

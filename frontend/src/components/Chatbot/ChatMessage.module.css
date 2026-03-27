@@ -4,13 +4,8 @@
   max-width: 100%;
 }
 
-.user {
-  flex-direction: row-reverse;
-}
-
-.assistant {
-  flex-direction: row;
-}
+.user { flex-direction: row-reverse; }
+.assistant { flex-direction: row; }
 
 .avatar {
   width: 28px;
@@ -26,8 +21,15 @@
   margin-top: 2px;
 }
 
-.bubble {
+.bubbleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   max-width: calc(100% - 40px);
+}
+
+.bubble {
+  position: relative;
   padding: 10px 13px;
   border-radius: var(--radius-md);
   font-size: 13px;
@@ -48,8 +50,52 @@
   border-radius: 4px var(--radius-md) var(--radius-md) var(--radius-md);
 }
 
-.text {
-  white-space: pre-wrap;
+.text { white-space: pre-wrap; }
+
+/* Copy button */
+.copyBtn {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.bubble:hover .copyBtn { opacity: 1; }
+.copyBtn.copied { color: var(--green); opacity: 1; }
+
+/* Follow-up chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding-left: 2px;
+}
+
+.chip {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.chip:hover {
+  border-color: var(--gold-dim);
+  color: var(--gold-light);
+  background: var(--gold-bg);
 }
 
 /* Typing indicator */

@@ -34,3 +34,26 @@
 .body {
   width: 100%;
 }
+
+.exportBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.exportBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--gold-dim);
+}
+
+.exportBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

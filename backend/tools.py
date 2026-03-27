@@ -465,6 +465,78 @@ def get_category_breakdown(period: str = "this_year", store_name: Optional[str] 
     }
 
 
+def get_revenue_forecast(store_name: Optional[str] = None, days_ahead: int = 7):
+    """Return last 30 days of daily revenue plus a simple 7-day moving average forecast."""
+    from datetime import date as _date
+    store_id = _resolve_store_id(store_name)
+    end = _date(2025, 12, 31)
+    start = end - timedelta(days=29)
+    rows = _filter_daily(store_id, start.isoformat(), end.isoformat())
+
+    # Aggregate by date
+    agg = {}
+    for r in rows:
+        d = r["date"]
+        agg[d] = agg.get(d, 0) + r["revenue"]
+
+    sorted_dates = sorted(agg.keys())
+    actuals = [{"date": d, "revenue": round(agg[d], 2), "forecast": None} for d in sorted_dates]
+
+    # 7-day rolling average for forecast
+    window = 7
+    if len(actuals) >= window:
+        rolling_avg = round(sum(agg[d] for d in sorted_dates[-window:]) / window, 2)
+    else:
+        rolling_avg = round(sum(agg[d] for d in sorted_dates) / max(len(sorted_dates), 1), 2)
+
+    # Project `days_ahead` future points
+    last_date = _date.fromisoformat(sorted_dates[-1])
+    future = []
+    for i in range(1, days_ahead + 1):
+        fd = (last_date + timedelta(days=i)).isoformat()
+        future.append({"date": fd, "revenue": None, "forecast": rolling_avg})
+
+    return {
+        "store_filter": store_name,
+        "rolling_avg": rolling_avg,
+        "data": actuals + future,
+    }
+
+
+def get_day_of_week_breakdown(store_name: Optional[str] = None, period: str = "this_year", metric: str = "revenue"):
+    """Return average revenue or order count broken down by day of week (Mon–Sun)."""
+    from datetime import date as _date
+    store_id = _resolve_store_id(store_name)
+    start, end = _resolve_period(period)
+    rows = _filter_daily(store_id, start, end)
+
+    DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    agg = {d: {"revenue": 0.0, "order_count": 0, "count": 0} for d in DAY_NAMES}
+
+    for r in rows:
+        dow = _date.fromisoformat(r["date"]).weekday()  # 0=Mon, 6=Sun
+        day = DAY_NAMES[dow]
+        agg[day]["revenue"] += r["revenue"]
+        agg[day]["order_count"] += r["order_count"]
+        agg[day]["count"] += 1
+
+    data = []
+    for day in DAY_NAMES:
+        n = agg[day]["count"]
+        data.append({
+            "day": day,
+            "avg_revenue": round(agg[day]["revenue"] / n, 2) if n else 0,
+            "avg_orders": round(agg[day]["order_count"] / n, 1) if n else 0,
+        })
+
+    return {
+        "period": f"{start} to {end}",
+        "store_filter": store_name,
+        "metric": metric,
+        "data": data,
+    }
+
+
 def get_store_product_comparison(product_name: str, period: str = "this_year"):
     """Compare how a specific product performs across all stores."""
     start, end = _resolve_period(period)
@@ -517,6 +589,8 @@ TOOL_FUNCTIONS = {
     "get_product_trend": get_product_trend,
     "get_category_breakdown": get_category_breakdown,
     "get_store_product_comparison": get_store_product_comparison,
+    "get_day_of_week_breakdown": get_day_of_week_breakdown,
+    "get_revenue_forecast": get_revenue_forecast,
 }
 
 

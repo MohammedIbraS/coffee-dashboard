@@ -97,6 +97,14 @@ Only include the keys relevant to the chart type you are using.
 - get_top_products     → which products lead in revenue or units
 - get_revenue / get_order_count / get_average_order_value → time-series metrics
 - get_kpi_summary      → high-level totals with period-over-period change
+- get_day_of_week_breakdown → avg revenue/orders by Mon-Sun, great for bar charts
+- get_revenue_forecast → last 30 days actual revenue + 7-day rolling average projection
+
+━━━ FOLLOW-UP SUGGESTIONS ━━━
+After every response, output 2–3 short follow-up question suggestions the user might naturally ask next.
+Format them as a JSON array inside these exact tags (after the chart_spec block if present):
+<suggestions>["Question 1?", "Question 2?", "Question 3?"]</suggestions>
+Keep suggestions short (under 50 chars each) and relevant to what was just shown.
 """
 
 TOOLS = [
@@ -214,6 +222,31 @@ TOOLS = [
         }
     },
     {
+        "name": "get_revenue_forecast",
+        "description": "Get last 30 days of daily revenue plus a 7-day rolling average forecast projected into the future. Use when user asks about forecast, prediction, projection, or 'what will revenue look like'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "store_name": {"type": "string", "description": "Store name or omit for all stores"},
+                "days_ahead": {"type": "integer", "description": "How many days to project into the future (default 7)"}
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "get_day_of_week_breakdown",
+        "description": "Get average revenue and average order count broken down by day of week (Monday through Sunday). Use when user asks about which days are busiest, day-of-week patterns, or weekday vs weekend comparisons at a granular level.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "store_name": {"type": "string", "description": "Store name or omit for all stores"},
+                "period": {"type": "string", "description": PERIOD_DESC},
+                "metric": {"type": "string", "enum": ["revenue", "order_count"], "description": "Primary metric to highlight"}
+            },
+            "required": []
+        }
+    },
+    {
         "name": "get_store_product_comparison",
         "description": "Compare how one specific product performs across all 5 stores — revenue and quantity per store. Use for 'which store sells the most X' questions.",
         "input_schema": {
@@ -242,6 +275,20 @@ def parse_chart_spec(text: str):
     return text, None
 
 
+def parse_suggestions(text: str):
+    """Extract follow-up suggestions JSON array from Claude's text response."""
+    import re
+    match = re.search(r"<suggestions>(.*?)</suggestions>", text, re.DOTALL)
+    if match:
+        try:
+            suggestions = json.loads(match.group(1).strip())
+            clean_text = re.sub(r"<suggestions>.*?</suggestions>", "", text, flags=re.DOTALL).strip()
+            return clean_text, suggestions
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return text, []
+
+
 def chat(messages: list) -> dict:
     """
     Run a multi-turn conversation with tool use.
@@ -255,7 +302,7 @@ def chat(messages: list) -> dict:
         api_messages.pop(0)
 
     if not api_messages:
-        return {"text": "Please send a message to get started.", "chart_spec": None}
+        return {"text": "Please send a message to get started.", "chart_spec": None, "suggestions": []}
 
     while True:
         response = client.messages.create(
@@ -273,7 +320,8 @@ def chat(messages: list) -> dict:
                 if hasattr(block, "text"):
                     full_text += block.text
             text, chart_spec = parse_chart_spec(full_text)
-            return {"text": text, "chart_spec": chart_spec}
+            text, suggestions = parse_suggestions(text)
+            return {"text": text, "chart_spec": chart_spec, "suggestions": suggestions}
 
         # Tool use — execute tools and continue
         if response.stop_reason == "tool_use":
@@ -294,4 +342,4 @@ def chat(messages: list) -> dict:
 
         break
 
-    return {"text": "I encountered an issue processing your request.", "chart_spec": None}
+    return {"text": "I encountered an issue processing your request.", "chart_spec": None, "suggestions": []}

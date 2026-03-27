@@ -1,0 +1,67 @@
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 25%,
+    rgba(255, 255, 255, 0.04) 50%,
+    var(--bg-card) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: 6px;
+}
+
+/* KPI Skeleton — matches KPICard layout */
+.kpiCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kpiTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kpiLabel {
+  height: 11px;
+  width: 70px;
+}
+
+.kpiIcon {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+}
+
+.kpiValue {
+  height: 26px;
+  width: 90px;
+}
+
+.kpiSub {
+  height: 10px;
+  width: 110px;
+}
+
+/* Chart Skeleton — matches ChartCard body */
+.chartBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0 4px;
+}
+
+.chartBar {
+  height: 12px;
+  border-radius: 4px;
+}
