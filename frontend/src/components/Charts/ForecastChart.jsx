@@ -4,10 +4,10 @@ import {
 } from "recharts";
 
 const tooltipStyle = {
-  backgroundColor: "#1e1e1e",
-  border: "1px solid #2a2a2a",
+  backgroundColor: "var(--bg-surface)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
-  color: "#f0f0f0",
+  color: "var(--text-primary)",
   fontSize: 13,
 };
 
@@ -24,31 +24,30 @@ const fmtRevenue = (v) => {
 };
 
 export function ForecastChart({ data = [], rollingAvg }) {
-  // Find the boundary date between actuals and forecast
   const lastActual = [...data].reverse().find((d) => d.revenue != null)?.date;
 
   return (
     <ResponsiveContainer width="100%" height={220}>
       <ComposedChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
         <XAxis
           dataKey="date"
-          tick={{ fill: "#a0a0a0", fontSize: 10 }}
+          tick={{ fill: "var(--text-muted)", fontSize: 10 }}
           tickFormatter={fmtDate}
           interval={6}
         />
-        <YAxis tick={{ fill: "#a0a0a0", fontSize: 11 }} width={52} tickFormatter={fmtRevenue} />
+        <YAxis tick={{ fill: "var(--text-muted)", fontSize: 11 }} width={52} tickFormatter={fmtRevenue} />
         <Tooltip
           contentStyle={tooltipStyle}
           labelFormatter={fmtDate}
           formatter={(v, name) => [fmtRevenue(v), name === "revenue" ? "Actual" : "Forecast"]}
         />
         <Legend
-          wrapperStyle={{ fontSize: 12, color: "#a0a0a0" }}
+          wrapperStyle={{ fontSize: 12 }}
           formatter={(v) => (v === "revenue" ? "Actual Revenue" : "7-Day Forecast")}
         />
         {lastActual && (
-          <ReferenceLine x={lastActual} stroke="#D4AF37" strokeDasharray="4 4" strokeOpacity={0.5} />
+          <ReferenceLine x={lastActual} stroke="var(--gold-dim)" strokeDasharray="4 4" strokeOpacity={0.6} />
         )}
         <Line
           type="monotone"
@@ -61,7 +60,7 @@ export function ForecastChart({ data = [], rollingAvg }) {
         <Line
           type="monotone"
           dataKey="forecast"
-          stroke="#7a6f3a"
+          stroke="var(--text-muted)"
           strokeWidth={2}
           strokeDasharray="6 4"
           dot={false}

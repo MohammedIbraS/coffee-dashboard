@@ -3,10 +3,10 @@ import {
 } from "recharts";
 
 const tooltipStyle = {
-  backgroundColor: "#1e1e1e",
-  border: "1px solid #2a2a2a",
+  backgroundColor: "var(--bg-surface)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
-  color: "#f0f0f0",
+  color: "var(--text-primary)",
   fontSize: 13,
 };
 
@@ -17,16 +17,16 @@ export function TopProductsChart({ data = [] }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
       <BarChart data={top} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" horizontal={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
         <XAxis
           type="number"
-          tick={{ fill: "#a0a0a0", fontSize: 11 }}
+          tick={{ fill: "var(--text-muted)", fontSize: 11 }}
           tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
         />
         <YAxis
           dataKey="product"
           type="category"
-          tick={{ fill: "#a0a0a0", fontSize: 11 }}
+          tick={{ fill: "var(--text-muted)", fontSize: 11 }}
           width={88}
         />
         <Tooltip

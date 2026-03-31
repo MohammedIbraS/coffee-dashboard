@@ -69,6 +69,17 @@ def revenue_forecast(store_name: Optional[str] = None, days_ahead: int = 7):
     return tools.get_revenue_forecast(store_name, days_ahead)
 
 
+@app.get("/api/menu")
+def menu_items(category: Optional[str] = None):
+    import json, os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "menu_data.json")
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    if category:
+        data = [d for d in data if d["category"].lower() == category.lower()]
+    return data
+
+
 # ---------------------------------------------------------------------------
 # Chat endpoint
 # ---------------------------------------------------------------------------

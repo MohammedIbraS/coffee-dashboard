@@ -1,4 +1,6 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { DynamicChart } from "../Charts/DynamicChart";
 import styles from "./ChatMessage.module.css";
 
@@ -26,10 +28,27 @@ export function ChatMessage({ role, text, chart_spec, suggestions = [], onSugges
 
   return (
     <div className={`${styles.msg} ${isUser ? styles.user : styles.assistant}`}>
-      {!isUser && <div className={styles.avatar}>☕</div>}
+      {!isUser && <div className={styles.avatar}>AI</div>}
       <div className={styles.bubbleWrap}>
         <div className={styles.bubble}>
-          <p className={styles.text}>{text}</p>
+          {isUser ? (
+            <p className={styles.userText}>{text}</p>
+          ) : (
+            <div className={styles.markdown}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  table: ({ children }) => (
+                    <div className={styles.tableScroll}>
+                      <table>{children}</table>
+                    </div>
+                  ),
+                }}
+              >
+                {text}
+              </ReactMarkdown>
+            </div>
+          )}
           {chart_spec && <DynamicChart spec={chart_spec} />}
           {!isUser && (
             <button

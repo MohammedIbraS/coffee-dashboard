@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -32,14 +34,45 @@
   --shadow: 0 2px 12px rgba(0,0,0,0.4);
 }
 
+[data-theme="light"] {
+  --bg-base:    #faf9f6;
+  --bg-surface: #f2f0ea;
+  --bg-card:    #ffffff;
+  --bg-hover:   #ede9df;
+  --border:     #e0dbd0;
+  --border-light: #d0c9bc;
+
+  --gold-dim:   #b8960c;
+  --gold-bg:    rgba(212, 175, 55, 0.12);
+
+  --text-primary:   #1a1814;
+  --text-secondary: #5a5448;
+  --text-muted:     #8a8070;
+
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
 html, body, #root {
   height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-base);
   color: var(--text-primary);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* Smooth base transition */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Theme fade — structural elements */
+*, *::before, *::after {
+  transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Interactive elements stay fast so hover/focus doesn't feel sluggish */
+button, a, input, textarea, select {
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease,
+              opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -47,4 +80,26 @@ html, body, #root {
 ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 
-button { cursor: pointer; font-family: inherit; }
+/* ── Global Recharts theme overrides ────────────────────────────── */
+/* Grid lines */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border) !important;
+}
+
+/* Axis tick labels */
+.recharts-cartesian-axis-tick-value {
+  fill: var(--text-muted);
+  transition: fill 0.25s ease;
+}
+
+/* Legend text */
+.recharts-legend-item-text {
+  color: var(--text-secondary) !important;
+  transition: color 0.25s ease;
+}
+
+/* Reference line */
+.recharts-reference-line line {
+  stroke: var(--gold-dim);
+}

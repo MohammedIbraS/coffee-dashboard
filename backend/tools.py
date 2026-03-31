@@ -578,6 +578,61 @@ def get_store_product_comparison(product_name: str, period: str = "this_year"):
 # Dispatcher — called from claude_service
 # ---------------------------------------------------------------------------
 
+def _load_menu():
+    path = os.path.join(DATA_DIR, "menu_data.json")
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def get_menu_items(
+    category: Optional[str] = None,
+    sort_by: str = "annual_profit",
+    limit: int = 20,
+    min_margin_pct: Optional[float] = None,
+):
+    """Return menu items with profitability data, optionally filtered and sorted."""
+    items = _load_menu()
+    if category:
+        items = [i for i in items if i["category"].lower() == category.lower()]
+    if min_margin_pct is not None:
+        items = [i for i in items if (i.get("profit_margin_pct") or 0) >= min_margin_pct]
+    valid_sorts = {"annual_profit", "sales_count", "revenue", "profit_margin_pct", "selling_price", "profit_margin"}
+    key = sort_by if sort_by in valid_sorts else "annual_profit"
+    items = sorted(items, key=lambda x: x.get(key) or 0, reverse=True)
+    return {"category_filter": category, "sort_by": sort_by, "data": items[:limit]}
+
+
+def get_menu_category_summary():
+    """Return aggregated profitability stats per category: total revenue, profit, units, avg margin."""
+    items = _load_menu()
+    agg = {}
+    for item in items:
+        cat = item["category"]
+        if cat not in agg:
+            agg[cat] = {"category": cat, "total_revenue": 0, "total_profit": 0,
+                        "total_units": 0, "margin_pcts": [], "item_count": 0}
+        agg[cat]["total_revenue"] += item.get("revenue") or 0
+        agg[cat]["total_profit"] += item.get("annual_profit") or 0
+        agg[cat]["total_units"] += item.get("sales_count") or 0
+        if item.get("profit_margin_pct"):
+            agg[cat]["margin_pcts"].append(item["profit_margin_pct"])
+        agg[cat]["item_count"] += 1
+
+    result = []
+    for cat, v in agg.items():
+        avg_margin = round(sum(v["margin_pcts"]) / len(v["margin_pcts"]), 1) if v["margin_pcts"] else 0
+        result.append({
+            "category": cat,
+            "total_revenue": round(v["total_revenue"], 2),
+            "total_profit": round(v["total_profit"], 2),
+            "total_units": v["total_units"],
+            "avg_margin_pct": avg_margin,
+            "item_count": v["item_count"],
+        })
+    result.sort(key=lambda x: -x["total_profit"])
+    return {"data": result}
+
+
 TOOL_FUNCTIONS = {
     "get_revenue": get_revenue,
     "get_top_products": get_top_products,
@@ -591,6 +646,8 @@ TOOL_FUNCTIONS = {
     "get_store_product_comparison": get_store_product_comparison,
     "get_day_of_week_breakdown": get_day_of_week_breakdown,
     "get_revenue_forecast": get_revenue_forecast,
+    "get_menu_items": get_menu_items,
+    "get_menu_category_summary": get_menu_category_summary,
 }
 
 

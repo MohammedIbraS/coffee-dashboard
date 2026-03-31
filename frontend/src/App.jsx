@@ -1,42 +1,72 @@
 import { useState, useEffect } from "react";
 import { Dashboard } from "./components/Dashboard/Dashboard";
+import { MenuDashboard } from "./components/Menu/MenuDashboard";
 import { ChatPanel } from "./components/Chatbot/ChatPanel";
 import "./App.css";
 
 function App() {
+  const [tab, setTab] = useState("analytics");
   const [pinnedCharts, setPinnedCharts] = useState([]);
-  const [toast, setToast] = useState(false);
+  const [pinnedMenuCharts, setPinnedMenuCharts] = useState([]);
+  const [toast, setToast] = useState(null); // null | string
+  const [theme, setTheme] = useState("dark");
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   const handleChartGenerated = (spec) => {
-    setPinnedCharts((prev) => [...prev, { id: Date.now(), spec }]);
-    setToast(true);
+    const entry = { id: Date.now(), spec };
+    if (spec.dataset === "menu") {
+      setPinnedMenuCharts((prev) => [...prev, entry]);
+      setTab("menu");
+      setToast("Chart pinned to Menu dashboard");
+    } else {
+      setPinnedCharts((prev) => [...prev, entry]);
+      setTab("analytics");
+      setToast("Chart pinned to Analytics dashboard");
+    }
   };
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(false), 3000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
   }, [toast]);
-
-  const handleDismissChart = (id) => {
-    setPinnedCharts((prev) => prev.filter((c) => c.id !== id));
-  };
 
   return (
     <div className="app-layout">
       <div className="dashboard-area">
-        <Dashboard
-          pinnedCharts={pinnedCharts}
-          onDismissChart={handleDismissChart}
-          onClearAllCharts={() => setPinnedCharts([])}
-        />
+        <div className="tab-bar">
+          <button className={`tab-btn ${tab === "analytics" ? "tab-active" : ""}`} onClick={() => setTab("analytics")}>
+            ☕ Analytics
+          </button>
+          <button className={`tab-btn ${tab === "menu" ? "tab-active" : ""}`} onClick={() => setTab("menu")}>
+            📋 Menu Profitability
+          </button>
+          <div style={{ flex: 1 }} />
+          <button className="tab-btn" onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))} title="Toggle theme">
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+        </div>
+        <div className="tab-content">
+          {tab === "analytics" ? (
+            <Dashboard
+              pinnedCharts={pinnedCharts}
+              onDismissChart={(id) => setPinnedCharts((p) => p.filter((c) => c.id !== id))}
+              onClearAllCharts={() => setPinnedCharts([])}
+            />
+          ) : (
+            <MenuDashboard
+              pinnedCharts={pinnedMenuCharts}
+              onDismissChart={(id) => setPinnedMenuCharts((p) => p.filter((c) => c.id !== id))}
+              onClearAllCharts={() => setPinnedMenuCharts([])}
+            />
+          )}
+        </div>
       </div>
       <ChatPanel onChartGenerated={handleChartGenerated} />
-      {toast && (
-        <div className="toast">
-          Chart pinned to dashboard
-        </div>
-      )}
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }

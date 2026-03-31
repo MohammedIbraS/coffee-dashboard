@@ -3,10 +3,10 @@ import {
 } from "recharts";
 
 const tooltipStyle = {
-  backgroundColor: "#1e1e1e",
-  border: "1px solid #2a2a2a",
+  backgroundColor: "var(--bg-surface)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
-  color: "#f0f0f0",
+  color: "var(--text-primary)",
   fontSize: 13,
 };
 
@@ -25,10 +25,10 @@ export function RevenueChart({ data = [] }) {
             <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis dataKey="label" tick={{ fill: "#a0a0a0", fontSize: 11 }} interval="preserveStartEnd" />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="label" tick={{ fill: "var(--text-muted)", fontSize: 11 }} interval="preserveStartEnd" />
         <YAxis
-          tick={{ fill: "#a0a0a0", fontSize: 11 }}
+          tick={{ fill: "var(--text-muted)", fontSize: 11 }}
           tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
           width={52}
         />

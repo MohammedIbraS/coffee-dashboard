@@ -17,6 +17,7 @@ export const api = {
   getStoreComparison: (params) => get("/store-comparison", params),
   getDayOfWeek: (params) => get("/day-of-week", params),
   getRevenueForecast: (params) => get("/revenue-forecast", params),
+  getMenu: (params) => get("/menu", params),
 
   chat: async (messages) => {
     const res = await fetch(`${BASE}/chat`, {

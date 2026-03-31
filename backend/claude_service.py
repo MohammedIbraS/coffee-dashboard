@@ -13,16 +13,40 @@ PERIOD_DESC = (
     "or exact range as 'YYYY-MM-DD to YYYY-MM-DD'"
 )
 
-SYSTEM_PROMPT = """You are a sharp analytics assistant for Coffee Co., a multi-store coffee chain.
-You help users explore sales data through natural conversation, spotting trends and generating charts.
+SYSTEM_PROMPT = """You are a sharp analytics assistant for a coffee brand with two datasets:
 
-Available stores: Downtown, Westside, Northgate, Eastpark, Midtown.
-Data covers the full year 2025 (Jan–Dec).
-Product categories: Hot Drinks, Cold Drinks, Food.
+━━━ DATASET 1 — Multi-Store Analytics (mock, 2025) ━━━
+Stores: Downtown, Westside, Northgate, Eastpark, Midtown.
+Data: daily sales across the full year 2025 (Jan–Dec).
+Categories: Hot Drinks, Cold Drinks, Food.
 
-━━━ RESPONSE RULES ━━━
+━━━ DATASET 2 — Menu Profitability (real, Sola Olas 2024) ━━━
+Single store "Sola Olas". Real 2024 data.
+Categories: Beverages (26 items), Desserts (13 items), Breakfast (7 items).
+Each item has: selling price (SAR), sales count, direct cost, app fee (23%), profit margin, margin %, annual profit, total revenue.
+Notable items: بلاك كوفي (110k units), ice v60 (66k), وافل ستيك (38k), فرنش توست (32k).
+Currency for menu data is SAR (Saudi Riyals). Always say "SAR" not "$" for menu data.
+
+━━━ DATASET ROUTING — follow exactly ━━━
+Use Dataset 2 tools (get_menu_items / get_menu_category_summary) when the question involves:
+  • margin, profit, cost, app fee, direct cost, profitability
+  • "menu item", "dish", "drink", "product" profitability or ranking by profit
+  • "top [N] beverages/desserts/items" ranked by profit, margin, or cost
+  • Sola Olas, SAR pricing, delivery app pricing
+  DO NOT use get_top_products or get_revenue for these — they only have mock analytics data.
+
+Use Dataset 1 tools (get_revenue, get_top_products, etc.) ONLY when the question involves:
+  • specific store names: Downtown, Westside, Northgate, Eastpark, Midtown
+  • revenue/orders over time, daily/monthly trends, period comparisons
+  • peak hours, store comparisons, order counts
+
+When in doubt (e.g. "top beverages by profit") → use Dataset 2 (menu tools).
+
+━━━ CRITICAL RULES ━━━
+- You HAVE margin, cost, and profit data. ALWAYS call the menu tools for profitability questions.
+  NEVER say you lack cost or margin data — get_menu_items has it all.
 - Lead with the key finding — be concise.
-- Always use $ and commas for revenue values (e.g. $12,450).
+- Use SAR for menu data. Use $ for multi-store analytics data.
 - Be proactive: flag anomalies or interesting patterns you notice.
 - You MUST include a <chart_spec> block for ANY answer that contains quantitative data.
   The only exceptions: user explicitly asks for text only, or the answer is a single scalar number.
@@ -73,6 +97,7 @@ When comparing two metrics over time (e.g. "show revenue and orders by month"):
 Output the chart spec AFTER your text response, inside these exact tags:
 <chart_spec>
 {
+  "dataset": "menu"|"analytics",
   "type": "hbar"|"line"|"area"|"bar"|"pie"|"composed"|"radar"|"scatter"|"treemap",
   "title": "Descriptive chart title",
   "xKey": "field for x-axis or category label",
@@ -87,7 +112,8 @@ Output the chart spec AFTER your text response, inside these exact tags:
   "colors": ["#D4AF37","#E8C84A","#B8960C"]
 }
 </chart_spec>
-Only include the keys relevant to the chart type you are using.
+Always include "dataset": set to "menu" when using get_menu_items/get_menu_category_summary data, "analytics" for all other tools.
+Only include the other keys relevant to the chart type you are using.
 
 ━━━ TOOL USAGE GUIDE ━━━
 - get_product_trend    → single product's performance over months or by store
@@ -99,6 +125,18 @@ Only include the keys relevant to the chart type you are using.
 - get_kpi_summary      → high-level totals with period-over-period change
 - get_day_of_week_breakdown → avg revenue/orders by Mon-Sun, great for bar charts
 - get_revenue_forecast → last 30 days actual revenue + 7-day rolling average projection
+- get_menu_items → menu profitability data; filter by category, sort by any metric
+- get_menu_category_summary → aggregate stats per category (Beverages/Desserts/Breakfast)
+
+━━━ CLARIFICATION ━━━
+If the user's request is genuinely ambiguous — unclear which metric to show, which time range, or which chart type fits — ask ONE short clarifying question BEFORE calling any tools. Do NOT output a <chart_spec> for clarification messages. Use <suggestions> to offer 2–4 specific options the user can click to answer your question.
+Examples that need clarification: "show me a chart", "visualize the data", "make a graph", "chart it".
+Examples that do NOT need clarification: "top 5 products by profit", "monthly revenue line chart", "compare stores".
+When clarifying, be specific: name the choices (e.g. "Do you want a bar chart by profit, or a pie chart by category share?").
+
+━━━ OUTPUT FORMAT — TABLES ━━━
+When presenting ranked lists or comparisons with 3+ fields, use a Markdown table instead of a bullet list.
+Always include a <chart_spec> alongside the table for the same data.
 
 ━━━ FOLLOW-UP SUGGESTIONS ━━━
 After every response, output 2–3 short follow-up question suggestions the user might naturally ask next.
@@ -123,7 +161,7 @@ TOOLS = [
     },
     {
         "name": "get_top_products",
-        "description": "Get top-selling products by revenue or quantity.",
+        "description": "Get top-selling products by revenue or quantity from the MOCK multi-store 2025 analytics data only. Do NOT use for margin, cost, or profitability questions — use get_menu_items instead.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -222,6 +260,29 @@ TOOLS = [
         }
     },
     {
+        "name": "get_menu_items",
+        "description": "ALWAYS call this for margin/profit/cost questions. Returns REAL 2024 data for Sola Olas menu items with profit_margin_pct, direct_cost, app_fee, annual_profit, selling_price, sales_count. Call this when user asks: 'which item has highest margin', 'top beverages by profit', 'most profitable item', 'what are item costs', 'which dessert earns the most', 'menu profitability', 'cost breakdown'. This tool HAS the margin and cost data — do not say you lack it.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "enum": ["Beverages", "Desserts", "Breakfast"], "description": "Filter by category, or omit for all"},
+                "sort_by": {"type": "string", "enum": ["annual_profit", "sales_count", "revenue", "profit_margin_pct", "selling_price", "profit_margin"], "description": "Field to sort by descending (default: annual_profit)"},
+                "limit": {"type": "integer", "description": "Max items to return (default 20)"},
+                "min_margin_pct": {"type": "number", "description": "Only return items with margin % >= this value"}
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "get_menu_category_summary",
+        "description": "Call this for category-level profit comparisons. Returns total annual profit, total revenue, avg margin %, item count per category (Beverages/Desserts/Breakfast). Use when user asks: 'which category is most profitable', 'compare categories by margin', 'how do beverages compare to desserts'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
         "name": "get_revenue_forecast",
         "description": "Get last 30 days of daily revenue plus a 7-day rolling average forecast projected into the future. Use when user asks about forecast, prediction, projection, or 'what will revenue look like'.",
         "input_schema": {
@@ -289,6 +350,20 @@ def parse_suggestions(text: str):
     return text, []
 
 
+MENU_KEYWORDS = [
+    "margin", "profit", "cost", "profitable", "profitability",
+    "menu item", "app fee", "direct cost", "sar", "sola olas",
+    "highest margin", "most profitable", "top item", "top beverage",
+    "top dessert", "top breakfast", "which item", "best item",
+    "earning", "annual profit", "lowest cost",
+]
+
+
+def _is_menu_question(text: str) -> bool:
+    lower = text.lower()
+    return any(kw in lower for kw in MENU_KEYWORDS)
+
+
 def chat(messages: list) -> dict:
     """
     Run a multi-turn conversation with tool use.
@@ -304,14 +379,27 @@ def chat(messages: list) -> dict:
     if not api_messages:
         return {"text": "Please send a message to get started.", "chart_spec": None, "suggestions": []}
 
+    # Detect if the last user message is menu-related and force tool use
+    force_menu_tool = False
+    if api_messages and api_messages[-1]["role"] == "user":
+        if _is_menu_question(api_messages[-1]["content"]):
+            force_menu_tool = True
+
+    first_call = True
     while True:
-        response = client.messages.create(
+        kwargs = dict(
             model=MODEL,
             max_tokens=4096,
             system=SYSTEM_PROMPT,
             tools=TOOLS,
             messages=api_messages,
         )
+        # On the first call, force the correct tool if it's a menu question
+        if first_call and force_menu_tool:
+            kwargs["tool_choice"] = {"type": "tool", "name": "get_menu_items"}
+        first_call = False
+
+        response = client.messages.create(**kwargs)
 
         # No tool use — return final text
         if response.stop_reason == "end_turn":

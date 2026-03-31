@@ -5,15 +5,15 @@ import styles from "./ChatPanel.module.css";
 
 const WELCOME = {
   role: "assistant",
-  text: "Hi! I'm your Coffee Co. analytics assistant. Ask me anything about sales, products, or store performance — I can also generate charts on demand.",
+  text: "Hi! I'm your analytics assistant. I have two datasets:\n\n**☕ Multi-Store Analytics** — 5 stores, 2025 sales data, revenue trends, peak hours.\n\n**📋 Menu Profitability** — Sola Olas 2024 real data: margins, costs, app fees, profit per item across Beverages, Desserts & Breakfast.\n\nAsk me anything — I can also generate charts on demand.",
   chart_spec: null,
   suggestions: [],
 };
 
 const INITIAL_SUGGESTIONS = [
-  "What are the top 5 products this month?",
-  "Compare store revenue for Q4",
-  "Show peak hours for Downtown",
+  "Which menu item has the highest margin?",
+  "Top 5 beverages by annual profit",
+  "Compare category profitability",
   "Monthly revenue trend for 2025",
 ];
 
