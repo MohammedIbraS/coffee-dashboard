@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { ChartCard } from "../Dashboard/ChartCard";
 import { KPISkeleton, ChartSkeleton } from "../Dashboard/Skeleton";
-import { DynamicChart } from "../Charts/DynamicChart";
+import { PinnedCharts } from "../Dashboard/PinnedCharts";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis,
@@ -11,6 +11,45 @@ import styles from "./MenuDashboard.module.css";
 
 const GOLD = "#D4AF37";
 const CAT_COLORS = { Beverages: "#D4AF37", Desserts: "#E8C84A", Breakfast: "#B8960C" };
+
+// Seeded pseudo-random for consistent sparklines per item
+function seededRand(seed) {
+  let s = seed;
+  return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
+}
+
+function makeSparkline(name, annualProfit) {
+  const rand = seededRand(name.split("").reduce((a, c) => a + c.charCodeAt(0), 0));
+  const weights = Array.from({ length: 12 }, () => 0.5 + rand());
+  const sum = weights.reduce((a, b) => a + b, 0);
+  return weights.map((w) => Math.round((w / sum) * annualProfit));
+}
+
+function Sparkline({ values }) {
+  if (!values?.length) return null;
+  const w = 80, h = 24, pad = 2;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.map((v, i) => [
+    pad + (i / (values.length - 1)) * (w - pad * 2),
+    h - pad - ((v - min) / range) * (h - pad * 2),
+  ]);
+  const d = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+  return (
+    <svg width={w} height={h} style={{ display: "block" }}>
+      <polyline
+        points={pts.map((p) => p.join(",")).join(" ")}
+        fill="none"
+        stroke="var(--gold)"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        opacity="0.7"
+      />
+      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="2" fill="var(--gold)" />
+    </svg>
+  );
+}
 
 const tooltipStyle = {
   backgroundColor: "var(--bg-surface)",
@@ -58,11 +97,14 @@ const SORT_OPTIONS = [
   { label: "Margin %", key: "profit_margin_pct" },
 ];
 
-export function MenuDashboard({ pinnedCharts = [], onDismissChart, onClearAllCharts }) {
+export function MenuDashboard({ pinnedCharts = [], onDismissChart, onClearAllCharts, onReorderCharts, onRenameChart }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("All");
   const [sortKey, setSortKey] = useState("annual_profit");
+  const [tableSort, setTableSort] = useState({ key: "annual_profit", dir: "desc" });
+  const [whatIfMode, setWhatIfMode] = useState(false);
+  const [simPrices, setSimPrices] = useState({});
 
   useEffect(() => {
     api.getMenu()
@@ -93,6 +135,29 @@ export function MenuDashboard({ pinnedCharts = [], onDismissChart, onClearAllCha
 
   const currentSortLabel = SORT_OPTIONS.find((o) => o.key === sortKey)?.label;
 
+  const handleTableSort = (key) => {
+    setTableSort((prev) =>
+      prev.key === key ? { key, dir: prev.dir === "asc" ? "desc" : "asc" } : { key, dir: "desc" }
+    );
+  };
+
+  const tableSorted = [...filtered].sort((a, b) => {
+    const mul = tableSort.dir === "asc" ? 1 : -1;
+    return ((a[tableSort.key] || 0) - (b[tableSort.key] || 0)) * mul;
+  });
+
+  const SortTh = ({ colKey, children }) => (
+    <th
+      className={`${styles.sortTh} ${tableSort.key === colKey ? styles.active : ""}`}
+      onClick={() => handleTableSort(colKey)}
+    >
+      {children}
+      <span className={styles.sortIcon}>
+        {tableSort.key === colKey ? (tableSort.dir === "asc" ? "▲" : "▼") : "⇅"}
+      </span>
+    </th>
+  );
+
   return (
     <div className={styles.wrapper}>
       <header className={styles.header}>
@@ -109,38 +174,13 @@ export function MenuDashboard({ pinnedCharts = [], onDismissChart, onClearAllCha
       </header>
 
       <div className={styles.content}>
-        {/* AI-Generated Charts — pinned by chatbot */}
-        {pinnedCharts.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--gold)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                ✦ AI Charts ({pinnedCharts.length})
-              </span>
-              <button
-                onClick={onClearAllCharts}
-                style={{ background: "none", border: "1px solid var(--border)", color: "var(--text-muted)", fontSize: 11, cursor: "pointer", padding: "3px 10px", borderRadius: 20 }}
-              >
-                Clear all
-              </button>
-            </div>
-            {pinnedCharts.map(({ id, spec }) => (
-              <div key={id} style={{ border: "1px solid var(--gold-dim)", borderRadius: 14, background: "var(--gold-bg)" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderBottom: "1px solid var(--gold-dim)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                      AI Generated
-                    </span>
-                    {spec.title && <span style={{ color: "var(--text-secondary)", fontSize: 12 }}>— {spec.title}</span>}
-                  </div>
-                  <button onClick={() => onDismissChart(id)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 14, cursor: "pointer", padding: "2px 6px" }}>✕</button>
-                </div>
-                <div style={{ padding: "16px 20px 20px", width: "100%", boxSizing: "border-box" }}>
-                  <DynamicChart spec={spec} height={260} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <PinnedCharts
+          charts={pinnedCharts}
+          onDismiss={onDismissChart}
+          onClearAll={onClearAllCharts}
+          onReorder={onReorderCharts}
+          onRename={onRenameChart}
+        />
 
         <div className={styles.kpiGrid}>
           {loading ? (
@@ -244,35 +284,94 @@ export function MenuDashboard({ pinnedCharts = [], onDismissChart, onClearAllCha
           </ChartCard>
         </div>
 
-        <ChartCard title="Cost Breakdown" subtitle="Direct cost · App fee (23%) · Profit per unit — all items">
+        <ChartCard
+          title="Cost Breakdown"
+          subtitle="Direct cost · App fee (23%) · Profit per unit — all items"
+          controls={
+            <button
+              onClick={() => setWhatIfMode((m) => !m)}
+              style={{
+                padding: "4px 10px", fontSize: 11, borderRadius: 20, cursor: "pointer", fontFamily: "inherit",
+                border: whatIfMode ? "1px solid var(--gold)" : "1px solid var(--border)",
+                background: whatIfMode ? "var(--gold-bg)" : "transparent",
+                color: whatIfMode ? "var(--gold)" : "var(--text-muted)",
+                transition: "all 0.15s",
+              }}
+            >
+              {whatIfMode ? "Exit Simulator" : "What-if Simulator"}
+            </button>
+          }
+        >
           {loading ? <ChartSkeleton /> : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>Item</th><th>Category</th><th>Price (﷼)</th><th>Direct Cost</th>
-                    <th>App Fee</th><th>Profit/Unit</th><th>Margin %</th><th>Units Sold</th><th>Annual Profit</th>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <SortTh colKey="selling_price">Price (﷼)</SortTh>
+                    <SortTh colKey="direct_cost">Direct Cost</SortTh>
+                    <SortTh colKey="app_fee">App Fee</SortTh>
+                    <SortTh colKey="profit_margin">Profit/Unit</SortTh>
+                    <SortTh colKey="profit_margin_pct">Margin %</SortTh>
+                    <SortTh colKey="sales_count">Units Sold</SortTh>
+                    <SortTh colKey="annual_profit">Annual Profit</SortTh>
+                    <th>Trend</th>
+                    {whatIfMode && <th style={{ color: "var(--gold)" }}>Sim Price</th>}
+                    {whatIfMode && <th style={{ color: "var(--gold)" }}>Sim Profit</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {[...filtered].sort((a, b) => (b.annual_profit || 0) - (a.annual_profit || 0)).map((item) => (
-                    <tr key={item.name}>
-                      <td className={styles.nameCell}>{item.name}</td>
-                      <td><span className={styles.catBadge} style={{ borderColor: CAT_COLORS[item.category] }}>{item.category}</span></td>
-                      <td>{item.selling_price}</td>
-                      <td className={styles.cost}>{item.direct_cost}</td>
-                      <td className={styles.cost}>{item.app_fee}</td>
-                      <td className={styles.profit}>{item.profit_margin}</td>
-                      <td>
-                        <div className={styles.marginBar}>
-                          <div className={styles.marginFill} style={{ width: `${item.profit_margin_pct}%` }} />
-                          <span>{item.profit_margin_pct}%</span>
-                        </div>
-                      </td>
-                      <td>{(item.sales_count || 0).toLocaleString()}</td>
-                      <td className={styles.profit}>{item.annual_profit ? item.annual_profit.toLocaleString() : "—"}</td>
-                    </tr>
-                  ))}
+                  {tableSorted.map((item) => {
+                    const simPrice = simPrices[item.name] ?? item.selling_price;
+                    const simProfit = +(simPrice - item.direct_cost - item.app_fee).toFixed(2);
+                    const simAnnual = Math.round(simProfit * (item.sales_count || 0));
+                    const simMarginPct = simPrice > 0 ? +((simProfit / simPrice) * 100).toFixed(1) : 0;
+                    const sparkData = makeSparkline(item.name, item.annual_profit || 0);
+                    return (
+                      <tr key={item.name}>
+                        <td className={styles.nameCell}>{item.name}</td>
+                        <td><span className={styles.catBadge} style={{ borderColor: CAT_COLORS[item.category] }}>{item.category}</span></td>
+                        <td>{item.selling_price}</td>
+                        <td className={styles.cost}>{item.direct_cost}</td>
+                        <td className={styles.cost}>{item.app_fee}</td>
+                        <td className={styles.profit}>{item.profit_margin}</td>
+                        <td>
+                          <div className={styles.marginBar}>
+                            <div className={styles.marginFill} style={{ width: `${item.profit_margin_pct}%` }} />
+                            <span>{item.profit_margin_pct}%</span>
+                          </div>
+                        </td>
+                        <td>{(item.sales_count || 0).toLocaleString()}</td>
+                        <td className={styles.profit}>{item.annual_profit ? item.annual_profit.toLocaleString() : "—"}</td>
+                        <td><Sparkline values={sparkData} /></td>
+                        {whatIfMode && (
+                          <td>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <input
+                                type="range"
+                                min={Math.max(1, item.selling_price * 0.5)}
+                                max={item.selling_price * 2}
+                                step={0.5}
+                                value={simPrice}
+                                onChange={(e) => setSimPrices((p) => ({ ...p, [item.name]: +e.target.value }))}
+                                style={{ width: 80, accentColor: "var(--gold)" }}
+                              />
+                              <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 32 }}>{simPrice} ﷼</span>
+                            </div>
+                          </td>
+                        )}
+                        {whatIfMode && (
+                          <td className={simProfit >= item.profit_margin ? styles.profit : styles.cost}>
+                            {simProfit.toFixed(2)} ﷼
+                            <span style={{ fontSize: 10, marginLeft: 4, opacity: 0.7 }}>({simMarginPct}%)</span>
+                            <br />
+                            <span style={{ fontSize: 10, opacity: 0.7 }}>{simAnnual.toLocaleString()} ann.</span>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

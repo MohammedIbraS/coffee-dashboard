@@ -34,6 +34,14 @@ function App() {
     return () => clearTimeout(timer);
   }, [toast]);
 
+  const handleReorderCharts = (reordered) => setPinnedCharts(reordered);
+  const handleRenameChart = (id, title) =>
+    setPinnedCharts((p) => p.map((c) => c.id === id ? { ...c, spec: { ...c.spec, title } } : c));
+
+  const handleReorderMenuCharts = (reordered) => setPinnedMenuCharts(reordered);
+  const handleRenameMenuChart = (id, title) =>
+    setPinnedMenuCharts((p) => p.map((c) => c.id === id ? { ...c, spec: { ...c.spec, title } } : c));
+
   return (
     <div className="app-layout">
       <div className="dashboard-area">
@@ -55,12 +63,16 @@ function App() {
               pinnedCharts={pinnedCharts}
               onDismissChart={(id) => setPinnedCharts((p) => p.filter((c) => c.id !== id))}
               onClearAllCharts={() => setPinnedCharts([])}
+              onReorderCharts={handleReorderCharts}
+              onRenameChart={handleRenameChart}
             />
           ) : (
             <MenuDashboard
               pinnedCharts={pinnedMenuCharts}
               onDismissChart={(id) => setPinnedMenuCharts((p) => p.filter((c) => c.id !== id))}
               onClearAllCharts={() => setPinnedMenuCharts([])}
+              onReorderCharts={handleReorderMenuCharts}
+              onRenameChart={handleRenameMenuChart}
             />
           )}
         </div>

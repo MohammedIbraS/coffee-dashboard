@@ -431,3 +431,67 @@ def chat(messages: list) -> dict:
         break
 
     return {"text": "I encountered an issue processing your request.", "chart_spec": None, "suggestions": []}
+
+
+def chat_stream(messages: list):
+    """
+    Streaming version of chat(). Yields SSE events:
+      data: {"type": "text", "text": "<chunk>"}
+      data: {"type": "done", "text": "<full>", "chart_spec": <obj|null>, "suggestions": [...]}
+    """
+    import json as _json
+
+    api_messages = [{"role": m["role"], "content": m["content"]} for m in messages]
+    while api_messages and api_messages[0]["role"] != "user":
+        api_messages.pop(0)
+    if not api_messages:
+        yield 'data: {"type":"done","text":"Please send a message.","chart_spec":null,"suggestions":[]}\n\n'
+        return
+
+    force_menu_tool = False
+    if api_messages and api_messages[-1]["role"] == "user":
+        if _is_menu_question(api_messages[-1]["content"]):
+            force_menu_tool = True
+
+    # ── Tool-use loop (identical to chat()) ─────────────────────────────────
+    first_call = True
+    while True:
+        kwargs = dict(model=MODEL, max_tokens=4096, system=SYSTEM_PROMPT, tools=TOOLS, messages=api_messages)
+        if first_call and force_menu_tool:
+            kwargs["tool_choice"] = {"type": "tool", "name": "get_menu_items"}
+        first_call = False
+
+        response = client.messages.create(**kwargs)
+
+        if response.stop_reason == "end_turn":
+            full_text = "".join(b.text for b in response.content if hasattr(b, "text"))
+
+            # Stream the final text character-by-character in chunks
+            chunk_size = 4
+            for i in range(0, len(full_text), chunk_size):
+                chunk = full_text[i:i + chunk_size]
+                yield f"data: {_json.dumps({'type': 'text', 'text': chunk})}\n\n"
+
+            # Parse and send the done event with clean text + chart_spec + suggestions
+            clean, chart_spec = parse_chart_spec(full_text)
+            clean, suggestions = parse_suggestions(clean)
+            yield f"data: {_json.dumps({'type': 'done', 'text': clean, 'chart_spec': chart_spec, 'suggestions': suggestions})}\n\n"
+            return
+
+        if response.stop_reason == "tool_use":
+            api_messages.append({"role": "assistant", "content": response.content})
+            tool_results = []
+            for block in response.content:
+                if block.type == "tool_use":
+                    result = dispatch(block.name, block.input)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": _json.dumps(result),
+                    })
+            api_messages.append({"role": "user", "content": tool_results})
+            continue
+
+        break
+
+    yield 'data: {"type":"done","text":"I encountered an issue.","chart_spec":null,"suggestions":[]}\n\n'

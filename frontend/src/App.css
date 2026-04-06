@@ -77,3 +77,21 @@
   from { opacity: 1; transform: translateY(0); }
   to   { opacity: 0; transform: translateY(8px); }
 }
+
+@media (max-width: 900px) {
+  .app-layout {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
+
+  .dashboard-area {
+    height: auto;
+    overflow: visible;
+  }
+
+  .tab-content {
+    overflow: visible;
+  }
+}

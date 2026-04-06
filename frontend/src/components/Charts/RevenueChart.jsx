@@ -1,5 +1,5 @@
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 
 const tooltipStyle = {
@@ -10,11 +10,20 @@ const tooltipStyle = {
   fontSize: 13,
 };
 
-export function RevenueChart({ data = [] }) {
-  const formatted = data.map((d) => ({
-    ...d,
-    label: d.date ? d.date.slice(5) : d.month,
-  }));
+export function RevenueChart({ data = [], prevData = [] }) {
+  const hasPrev = prevData.length > 0;
+
+  // Merge current + previous by positional index so both series share x-axis slots
+  const maxLen = Math.max(data.length, prevData.length);
+  const formatted = Array.from({ length: maxLen }, (_, i) => {
+    const cur = data[i];
+    const prv = prevData[i];
+    return {
+      label: cur ? (cur.date ? cur.date.slice(5) : cur.month) : (prv?.date ? prv.date.slice(5) : prv?.month),
+      revenue: cur?.revenue ?? null,
+      prev_revenue: prv?.revenue ?? null,
+    };
+  });
 
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -23,6 +32,10 @@ export function RevenueChart({ data = [] }) {
           <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />
             <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="prevGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#7080a0" stopOpacity={0.2} />
+            <stop offset="95%" stopColor="#7080a0" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -34,14 +47,30 @@ export function RevenueChart({ data = [] }) {
         />
         <Tooltip
           contentStyle={tooltipStyle}
-          formatter={(v) => [`$${v.toLocaleString()}`, "Revenue"]}
+          formatter={(v, name) => [
+            `$${(v || 0).toLocaleString()}`,
+            name === "prev_revenue" ? "Previous period" : "This period",
+          ]}
         />
+        {hasPrev && <Legend wrapperStyle={{ fontSize: 12 }} formatter={(v) => v === "prev_revenue" ? "Previous period" : "This period"} />}
+        {hasPrev && (
+          <Area
+            type="monotone"
+            dataKey="prev_revenue"
+            stroke="#7080a0"
+            strokeWidth={1.5}
+            strokeDasharray="4 3"
+            fill="url(#prevGrad)"
+            connectNulls
+          />
+        )}
         <Area
           type="monotone"
           dataKey="revenue"
           stroke="#D4AF37"
           strokeWidth={2}
           fill="url(#revenueGrad)"
+          connectNulls
         />
       </AreaChart>
     </ResponsiveContainer>

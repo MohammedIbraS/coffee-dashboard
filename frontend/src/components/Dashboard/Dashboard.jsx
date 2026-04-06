@@ -8,8 +8,8 @@ import { PeakHoursChart } from "../Charts/PeakHoursChart";
 import { StoreComparisonChart } from "../Charts/StoreComparisonChart";
 import { DayOfWeekChart } from "../Charts/DayOfWeekChart";
 import { ForecastChart } from "../Charts/ForecastChart";
-import { DynamicChart } from "../Charts/DynamicChart";
 import { KPISkeleton, ChartSkeleton } from "./Skeleton";
+import { PinnedCharts } from "./PinnedCharts";
 import styles from "./Dashboard.module.css";
 
 const PERIODS = [
@@ -17,7 +17,21 @@ const PERIODS = [
   { label: "30D", value: "last_30_days" },
   { label: "90D", value: "last_90_days" },
   { label: "YTD", value: "this_year" },
+  { label: "Custom", value: "custom" },
 ];
+
+// Given a fetched daily revenue array, compute the previous equal-length period string
+function prevPeriodFromData(data) {
+  const dates = data.map((d) => d.date).filter(Boolean).sort();
+  if (dates.length === 0) return null;
+  const first = new Date(dates[0]);
+  const last = new Date(dates[dates.length - 1]);
+  const spanMs = last - first + 86_400_000;
+  const prevEnd = new Date(first.getTime() - 86_400_000);
+  const prevStart = new Date(prevEnd.getTime() - spanMs + 86_400_000);
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  return `${fmt(prevStart)} to ${fmt(prevEnd)}`;
+}
 
 function PillButton({ active, onClick, children }) {
   return (
@@ -40,10 +54,16 @@ function PillButton({ active, onClick, children }) {
   );
 }
 
-export function Dashboard({ pinnedCharts = [], onDismissChart, onClearAllCharts }) {
+export function Dashboard({ pinnedCharts = [], onDismissChart, onClearAllCharts, onReorderCharts, onRenameChart }) {
   const [period, setPeriod] = useState("last_30_days");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [stores, setStores] = useState([]);
+  const [selectedStore, setSelectedStore] = useState("all");
   const [kpi, setKpi] = useState(null);
   const [revenue, setRevenue] = useState([]);
+  const [prevRevenue, setPrevRevenue] = useState([]);
+  const [showCompare, setShowCompare] = useState(false);
   const [products, setProducts] = useState([]);
   const [peakHours, setPeakHours] = useState([]);
   const [storeComp, setStoreComp] = useState([]);
@@ -55,27 +75,52 @@ export function Dashboard({ pinnedCharts = [], onDismissChart, onClearAllCharts 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    api.getStores().then(setStores).catch(() => {});
+  }, []);
+
+  const storeName = selectedStore === "all" ? undefined : selectedStore;
+
+  // Resolve effective period (custom range takes priority when both dates set)
+  const effectivePeriod = period === "custom" && customStart && customEnd
+    ? `${customStart} to ${customEnd}`
+    : period === "custom" ? "last_30_days" : period;
+
+  const isMonthly = effectivePeriod === "this_year";
+
+  useEffect(() => {
+    if (period === "custom" && (!customStart || !customEnd)) return;
     setLoading(true);
+    setPrevRevenue([]);
     Promise.allSettled([
-      api.getKpiSummary(period),
-      api.getRevenue({ period, group_by: period === "this_year" ? "month" : "day" }),
-      api.getTopProducts({ period, limit: 7 }),
-      api.getPeakHours({ day_type: dayType }),
-      api.getStoreComparison({ metric: storeMetric, period }),
-      api.getDayOfWeek({ period }),
-      api.getRevenueForecast(),
+      api.getKpiSummary(effectivePeriod),
+      api.getRevenue({ period: effectivePeriod, group_by: isMonthly ? "month" : "day", store_name: storeName }),
+      api.getTopProducts({ period: effectivePeriod, limit: 7, store_name: storeName }),
+      api.getPeakHours({ day_type: dayType, store_name: storeName }),
+      api.getStoreComparison({ metric: storeMetric, period: effectivePeriod }),
+      api.getDayOfWeek({ period: effectivePeriod, store_name: storeName }),
+      api.getRevenueForecast({ store_name: storeName }),
     ])
-      .then(([k, rev, prod, hours, stores, dow, fc]) => {
+      .then(([k, rev, prod, hours, storeC, dow, fc]) => {
         if (k.status === "fulfilled") setKpi(k.value);
         if (rev.status === "fulfilled") setRevenue(rev.value.data);
         if (prod.status === "fulfilled") setProducts(prod.value.data);
         if (hours.status === "fulfilled") setPeakHours(hours.value.data);
-        if (stores.status === "fulfilled") setStoreComp(stores.value.data);
+        if (storeC.status === "fulfilled") setStoreComp(storeC.value.data);
         if (dow.status === "fulfilled") setDowData(dow.value.data);
         if (fc.status === "fulfilled") setForecast({ data: fc.value.data, rollingAvg: fc.value.rolling_avg });
       })
       .finally(() => setLoading(false));
-  }, [period, storeMetric, dayType]);
+  }, [effectivePeriod, storeMetric, dayType, selectedStore]);
+
+  // Fetch previous period when compare is toggled on
+  useEffect(() => {
+    if (!showCompare || !revenue.length) { setPrevRevenue([]); return; }
+    const prev = prevPeriodFromData(revenue);
+    if (!prev) { setPrevRevenue([]); return; }
+    api.getRevenue({ period: prev, group_by: "day", store_name: storeName })
+      .then((r) => setPrevRevenue(r.data || []))
+      .catch(() => setPrevRevenue([]));
+  }, [showCompare, revenue, storeName]);
 
   const fmtRevenue = (v) => {
     if (!v) return "—";
@@ -92,48 +137,72 @@ export function Dashboard({ pinnedCharts = [], onDismissChart, onClearAllCharts 
           <span className={styles.brandName}>Coffee Co.</span>
           <span className={styles.brandTag}>Analytics</span>
         </div>
-        <div className={styles.periodPicker}>
-          {PERIODS.map((p) => (
-            <PillButton key={p.value} active={period === p.value} onClick={() => setPeriod(p.value)}>
-              {p.label}
-            </PillButton>
-          ))}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {stores.length > 0 && (
+            <select
+              value={selectedStore}
+              onChange={(e) => setSelectedStore(e.target.value)}
+              style={{
+                background: "var(--bg-card)",
+                border: "1px solid var(--border)",
+                color: "var(--text-secondary)",
+                borderRadius: 20,
+                padding: "4px 10px",
+                fontSize: 12,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                outline: "none",
+              }}
+            >
+              <option value="all">All Stores</option>
+              {stores.map((s) => (
+                <option key={s.id} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+          )}
+          <div className={styles.periodPicker}>
+            {PERIODS.map((p) => (
+              <PillButton key={p.value} active={period === p.value} onClick={() => setPeriod(p.value)}>
+                {p.label}
+              </PillButton>
+            ))}
+            {period === "custom" && (
+              <>
+                <input
+                  type="date"
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  style={{
+                    background: "var(--bg-card)", border: "1px solid var(--border)",
+                    color: "var(--text-secondary)", borderRadius: 8, padding: "3px 8px",
+                    fontSize: 12, fontFamily: "inherit", outline: "none",
+                  }}
+                />
+                <span style={{ color: "var(--text-muted)", fontSize: 12 }}>to</span>
+                <input
+                  type="date"
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  style={{
+                    background: "var(--bg-card)", border: "1px solid var(--border)",
+                    color: "var(--text-secondary)", borderRadius: 8, padding: "3px 8px",
+                    fontSize: 12, fontFamily: "inherit", outline: "none",
+                  }}
+                />
+              </>
+            )}
+          </div>
         </div>
       </header>
 
       <div className={styles.content}>
-        {/* AI-Generated Charts — pinned by chatbot */}
-        {pinnedCharts.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#D4AF37", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                ✦ AI Charts ({pinnedCharts.length})
-              </span>
-              <button
-                onClick={onClearAllCharts}
-                style={{ background: "none", border: "1px solid var(--border)", color: "var(--text-muted)", fontSize: 11, cursor: "pointer", padding: "3px 10px", borderRadius: 20 }}
-              >
-                Clear all
-              </button>
-            </div>
-            {pinnedCharts.map(({ id, spec }) => (
-              <div key={id} style={{ border: "1px solid var(--gold-dim)", borderRadius: 14, background: "var(--gold-bg)" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderBottom: "1px solid var(--gold-dim)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                      AI Generated
-                    </span>
-                    {spec.title && <span style={{ color: "var(--text-secondary)", fontSize: 12 }}>— {spec.title}</span>}
-                  </div>
-                  <button onClick={() => onDismissChart(id)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 14, cursor: "pointer", padding: "2px 6px" }}>✕</button>
-                </div>
-                <div style={{ padding: "16px 20px 20px", width: "100%", boxSizing: "border-box" }}>
-                  <DynamicChart spec={spec} height={260} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <PinnedCharts
+          charts={pinnedCharts}
+          onDismiss={onDismissChart}
+          onClearAll={onClearAllCharts}
+          onReorder={onReorderCharts}
+          onRename={onRenameChart}
+        />
 
         {/* KPI Cards */}
         <div className={styles.kpiGrid}>
@@ -149,8 +218,20 @@ export function Dashboard({ pinnedCharts = [], onDismissChart, onClearAllCharts 
           )}
         </div>
 
-        <ChartCard title="Revenue Over Time" subtitle={`Period: ${PERIODS.find(p => p.value === period)?.label}`}>
-          {loading ? <ChartSkeleton /> : <RevenueChart data={revenue} />}
+        <ChartCard
+          title="Revenue Over Time"
+          subtitle={period === "custom" && customStart && customEnd
+            ? `${customStart} → ${customEnd}`
+            : `Period: ${PERIODS.find(p => p.value === period)?.label ?? period}`}
+          controls={
+            !isMonthly && (
+              <PillButton active={showCompare} onClick={() => setShowCompare((v) => !v)}>
+                Compare
+              </PillButton>
+            )
+          }
+        >
+          {loading ? <ChartSkeleton /> : <RevenueChart data={revenue} prevData={showCompare ? prevRevenue : []} />}
         </ChartCard>
 
         <div className={styles.twoCol}>

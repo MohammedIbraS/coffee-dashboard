@@ -2,7 +2,21 @@ import { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import styles from "./ChartCard.module.css";
 
-export function ChartCard({ title, subtitle, controls, children }) {
+function exportCSV(data, filename) {
+  if (!data?.length) return;
+  const headers = Object.keys(data[0]);
+  const rows = data.map((row) => headers.map((h) => JSON.stringify(row[h] ?? "")).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${filename || "data"}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function ChartCard({ title, subtitle, controls, children, csvData }) {
   const cardRef = useRef(null);
   const [exporting, setExporting] = useState(false);
 
@@ -10,10 +24,7 @@ export function ChartCard({ title, subtitle, controls, children }) {
     if (!cardRef.current || exporting) return;
     setExporting(true);
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: "#1e1e1e",
-        scale: 2,
-      });
+      const canvas = await html2canvas(cardRef.current, { backgroundColor: "var(--bg-card)", scale: 2 });
       const link = document.createElement("a");
       link.download = `${title || "chart"}.png`;
       link.href = canvas.toDataURL("image/png");
@@ -32,6 +43,15 @@ export function ChartCard({ title, subtitle, controls, children }) {
         </div>
         <div className={styles.controls}>
           {controls}
+          {csvData?.length > 0 && (
+            <button
+              className={styles.exportBtn}
+              onClick={() => exportCSV(csvData, title)}
+              title="Download CSV"
+            >
+              CSV
+            </button>
+          )}
           <button
             className={styles.exportBtn}
             onClick={handleExport}
